@@ -219,7 +219,16 @@ def vectors_F(w,i):
 
     return x[w][i]
 
+def print_vector(x,ws):
+    s = ''.join(["{:0",str(ws/4),"X}, "] * 3 + ["{:0",str(ws/4),"X}"])
+    print s.format(x[0],x[1],x[2],x[3])
 
+def print_state(S,ws):
+    print_vector([S[ 0],S[ 1],S[ 2],S[ 3]],ws)
+    print_vector([S[ 4],S[ 5],S[ 6],S[ 7]],ws)
+    print_vector([S[ 8],S[ 9],S[10],S[11]],ws)
+    print_vector([S[12],S[13],S[14],S[15]],ws)
+    print
 
 
 if __name__ == '__main__':
@@ -232,8 +241,7 @@ if __name__ == '__main__':
         x = [1, 0, 0, 0]
         for i in xrange(16):
             if DEBUG:
-                s = ''.join(["{:0",str(ws/4),"X}, "] * (len(x) - 1) + ["{:0",str(ws/4),"X}"])
-                print s.format(*x)
+                print_vector(x)
             assert vectors_G(ws,i) == tuple(x)
             x[0],x[1],x[2],x[3] = norx.G(*x)
         print "NORX{}, G: all tests passed.".format(ws)
@@ -245,18 +253,19 @@ if __name__ == '__main__':
         x = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         for i in xrange(16):
             if DEBUG:
-                s = ''.join(["{:0",str(ws/4),"X}, "] * (len(x) - 1) + ["{:0",str(ws/4),"X}"])
-                print s.format(*x)
+                print_state(x)
             assert vectors_F(ws,i) == tuple(x)
             x = norx.F(x)
         print "NORX{}, F: all tests passed.".format(ws)
 
 
 
+    k = b'\x33\x22\x11\x00\x77\x66\x55\x44\xBB\xAA\x99\x88\xFF\xEE\xDD\xCC'
+    n = b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF'
 
-
-
-
+    norx = NORX(w = 32)
+    S = norx.init(k,n)
+    print_state(S,32)
 
 
 
