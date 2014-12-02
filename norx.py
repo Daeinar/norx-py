@@ -84,6 +84,9 @@ class NORX:
             S = self.F(S)
         return S
 
+    def pad(self):
+        pass
+
     def init(self,k,n):
         assert len(k) == self.NORX_K / 8
         assert len(n) == self.NORX_N / 8
@@ -106,3 +109,33 @@ class NORX:
         S = self.FR(S)
 
         return S
+
+    def absorb(self):
+        pass
+
+    def absorb_block(self):
+        pass
+
+    def encrypt(self):
+        pass
+
+    def encrypt_block(self):
+        pass
+
+    def decrypt(self):
+        pass
+
+    def decrypt_block(self):
+        pass
+
+    def generate_tag(self):
+        pass
+
+    def verify_tag(self):
+        pass
+
+    def aead_encrypt(self):
+        pass
+
+    def aead_decrypt(self):
+        pass
