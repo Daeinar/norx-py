@@ -6,8 +6,7 @@
    :copyright: (c) 2014 by Philipp Jovanovic <philipp@jovanovic.io>.
    :license: CC0, see LICENSE for more details.
 """
-from struct import unpack as load
-from struct import pack as store
+from struct import unpack, pack
 from norx import NORX
 
 def vectors_G(w,i):
@@ -261,46 +260,50 @@ def test_enc32():
     K = [0x00112233,0x44556677,0x8899AABB,0xCCDDEEFF]
     N = [0xFFFFFFFF,0xFFFFFFFF]
     A = [0x10000002,0x30000004]
-    P = [0x80000007,0x60000005,0x40000003,0x20000001]
+    M = [0x80000007,0x60000005,0x40000003,0x20000001]
     C = [0xCCABE778,0xB475C97F,0x544B3BC2,0x06DA08D4]
     T = [0xF41C98A9,0xE9BEC3FE,0x80558E88,0x29A994CE]
-    k = b''.join([store('<L',K[i]) for i in xrange(len(K))])
-    n = b''.join([store('<L',N[i]) for i in xrange(len(N))])
-    a = b''.join([store('<L',A[i]) for i in xrange(len(A))])
-    p = b''.join([store('<L',P[i]) for i in xrange(len(P))])
-    c = b''.join([store('<L',C[i]) for i in xrange(len(C))])
-    t = b''.join([store('<L',T[i]) for i in xrange(len(T))])
+    k = b''.join([pack('<L',K[i]) for i in xrange(len(K))])
+    n = b''.join([pack('<L',N[i]) for i in xrange(len(N))])
+    a = b''.join([pack('<L',A[i]) for i in xrange(len(A))])
+    m = b''.join([pack('<L',M[i]) for i in xrange(len(M))])
+    c = b''.join([pack('<L',C[i]) for i in xrange(len(C))])
+    t = b''.join([pack('<L',T[i]) for i in xrange(len(T))])
 
     norx = NORX(pw,pr,pd,pt)
-    cc = norx.aead_encrypt(a,p,'',n,k)
-    ct = c+t
+    cc = norx.aead_encrypt(a,m,'',n,k)
+    mm = norx.aead_decrypt(a,cc,'',n,k)
 
-    for i in xrange(len(cc)):
-        assert cc[i] == ct[i]
-    print "NORX{}, enc: tests passed.".format(pw)
+    for i in xrange(len(mm)):
+        assert mm[i] == m[i]
+    print "NORX{}, enc/dec: tests passed.".format(pw)
+
+
 
 def test_enc64():
     pw,pr,pd,pt = 64,4,1,256
     K = [0x0011223344556677,0x8899AABBCCDDEEFF,0xFFEEDDCCBBAA9988,0x7766554433221100]
     N = [0xFFFFFFFFFFFFFFFF,0xFFFFFFFFFFFFFFFF]
     A = [0x1000000000000002,0x3000000000000004]
-    P = [0x8000000000000007,0x6000000000000005,0x4000000000000003,0x2000000000000001]
+    M = [0x8000000000000007,0x6000000000000005,0x4000000000000003,0x2000000000000001]
     C = [0x70261529CACFB7ED,0xADEDDCDEF81912B5,0x8D5DB2E73CB9A44E,0x576DD64D38BE869F]
     T = [0x97F45179DE5D5804,0xE47E0A8FA7B157D0,0xAD4E6B119FE2FEF2,0x939490F32AADB1B9]
-    k = b''.join([store('<Q',K[i]) for i in xrange(len(K))])
-    n = b''.join([store('<Q',N[i]) for i in xrange(len(N))])
-    a = b''.join([store('<Q',A[i]) for i in xrange(len(A))])
-    p = b''.join([store('<Q',P[i]) for i in xrange(len(P))])
-    c = b''.join([store('<Q',C[i]) for i in xrange(len(C))])
-    t = b''.join([store('<Q',T[i]) for i in xrange(len(T))])
+    k = b''.join([pack('<Q',K[i]) for i in xrange(len(K))])
+    n = b''.join([pack('<Q',N[i]) for i in xrange(len(N))])
+    a = b''.join([pack('<Q',A[i]) for i in xrange(len(A))])
+    m = b''.join([pack('<Q',M[i]) for i in xrange(len(M))])
+    c = b''.join([pack('<Q',C[i]) for i in xrange(len(C))])
+    t = b''.join([pack('<Q',T[i]) for i in xrange(len(T))])
 
     norx = NORX(pw,pr,pd,pt)
-    cc = norx.aead_encrypt(a,p,'',n,k)
-    ct = c+t
+    cc = norx.aead_encrypt(a,m,'',n,k)
+    mm = norx.aead_decrypt(a,cc,'',n,k)
 
-    for i in xrange(len(cc)):
-        assert cc[i] == ct[i]
-    print "NORX{}, enc: tests passed.".format(pw)
+    for i in xrange(len(mm)):
+        assert mm[i] == m[i]
+    print "NORX{}, enc/dec: tests passed.".format(pw)
+
+
 
 
 if __name__ == '__main__':

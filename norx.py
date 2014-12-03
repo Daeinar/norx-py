@@ -6,9 +6,7 @@
    :license: CC0, see LICENSE for more details.
 """
 
-from struct import unpack as load
-from struct import pack as store
-
+from struct import unpack, pack
 
 def print_vector(x,ws):
     s = ''.join(["{:0",str(ws/4),"X}, "] * 3 + ["{:0",str(ws/4),"X}"])
@@ -105,8 +103,8 @@ class NORX:
         assert len(n) == self.NORX_N / 8
 
         b = self.BYTES_WORD
-        K = [ load(self.fmt, k[b*i:b*(i+1)])[0] for i in xrange(self.NORX_K / self.NORX_W) ]
-        N = [ load(self.fmt, n[b*i:b*(i+1)])[0] for i in xrange(self.NORX_N / self.NORX_W) ]
+        K = [ unpack(self.fmt, k[b*i:b*(i+1)])[0] for i in xrange(self.NORX_K / self.NORX_W) ]
+        N = [ unpack(self.fmt, n[b*i:b*(i+1)])[0] for i in xrange(self.NORX_N / self.NORX_W) ]
         U = self.U
 
         S[ 0], S[ 1], S[ 2], S[ 3] = U[0], N[0], N[1], U[1]
@@ -121,7 +119,6 @@ class NORX:
 
         self.permute(S)
 
-
     def inject_tag(self,S,tag):
         S[15] ^= tag
 
@@ -132,32 +129,32 @@ class NORX:
         return self.absorb_data(S,x,self.TRAILER_TAG)
 
     def absorb_data(self,S,x,tag):
-        m = len(x)
-        if m > 0:
+        inlen = len(x)
+        if inlen > 0:
             i, n = 0, self.BYTES_RATE
-            while m >= n:
+            while inlen >= n:
                 self.absorb_block(S,x[n*i:n*(i+1)],tag)
-                m -= n
+                inlen -= n
                 i += 1
-            self.absorb_block(S,self.pad(x[n*i:n*i+m]),tag)
+            self.absorb_block(S,self.pad(x[n*i:n*i+inlen]),tag)
 
     def absorb_block(self,S,x,tag):
         b = self.BYTES_WORD
         self.inject_tag(S,tag)
         self.permute(S)
         for i in xrange(self.WORDS_RATE):
-            S[i] ^= load(self.fmt,x[b*i:b*(i+1)])[0]
+            S[i] ^= unpack(self.fmt,x[b*i:b*(i+1)])[0]
 
     def encrypt_data(self,S,x):
         c = ''
-        m = len(x)
-        if m > 0:
+        inlen = len(x)
+        if inlen > 0:
             i, n = 0, self.BYTES_RATE
-            while m >= n:
-                c += self.encrypt_block(S,x[n*i:n*(i+1)])
-                m -= n
+            while inlen >= n:
+                c += self.encrypt_block(S,x[n*i:n*(i+1)],n)
+                inlen -= n
                 i +=1
-            c += self.encrypt_block(S,self.pad(x[n*i:n*i+m]),m)
+            c += self.encrypt_block(S,self.pad(x[n*i:n*i+inlen]),inlen)
         return c
 
     def encrypt_block(self,S,x,xlen):
@@ -166,15 +163,51 @@ class NORX:
         self.inject_tag(S,self.PAYLOAD_TAG)
         self.permute(S)
         for i in xrange(self.WORDS_RATE):
-            S[i] ^= load(self.fmt,x[b*i:b*(i+1)])[0]
-            c += store(self.fmt,S[i])
+            S[i] ^= unpack(self.fmt,x[b*i:b*(i+1)])[0]
+            c += pack(self.fmt,S[i])
         return c[:xlen]
 
-    def decrypt(self):
-        pass
+    def decrypt_data(self,S,x):
+        m = ''
+        inlen = len(x)
+        if inlen > 0:
+            i, n = 0, self.BYTES_RATE
+            while inlen >= n:
+                m += decrypt_block(S,x,xlen)
+                inlen -= n
+                i +=1
+            m += self.decrypt_lastblock(S,x[n*i:n*i+inlen],inlen)
+        return m
 
-    def decrypt_block(self):
-        pass
+    def decrypt_block(self,S,x,xlen):
+        m = ''
+        b = self.BYTES_WORD
+        self.inject_tag(S,self.PAYLOAD_TAG)
+        self.permute(S)
+        for i in xrange(self.WORDS_RATE):
+            c = unpack(self.fmt,x[b*i:b*(i+1)])[0]
+            m += pack(self.fmt,S[i] ^ c)
+            S[i] = c
+        return m[:xlen]
+
+    def decrypt_lastblock(self,S,x,xlen):
+        m = ''
+        y = '' # lastblock
+        b = self.BYTES_WORD
+        self.inject_tag(S,self.PAYLOAD_TAG)
+        self.permute(S)
+
+        for i in xrange(self.WORDS_RATE):
+            y += pack(self.fmt,S[i])
+
+        y = x + y[xlen:]
+        y = y[:xlen] + chr(ord(y[xlen]) ^ 0x01) + y[xlen+1:self.BYTES_RATE-1] + chr(ord(y[self.BYTES_RATE - 1]) ^ 0x80) + y[self.BYTES_RATE:]
+
+        for i in xrange(self.WORDS_RATE):
+            c = unpack(self.fmt,y[b*i:b*(i+1)])[0]
+            m += pack(self.fmt,S[i] ^ c)
+            S[i] = c
+        return m[:xlen]
 
     def generate_tag(self,S):
         t = ''
@@ -182,7 +215,7 @@ class NORX:
         self.permute(S)
         self.permute(S)
         for i in xrange(self.WORDS_RATE):
-            t += store(self.fmt,S[i])
+            t += pack(self.fmt,S[i])
         return t[:self.BYTES_TAG]
 
     def verify_tag(self):
@@ -198,6 +231,16 @@ class NORX:
         c += self.generate_tag(S)
         return c
 
-    def aead_decrypt(self):
+    def aead_decrypt(self,h,c,t,nonce,key):
         S = [0] * 16
-        pass
+        m = ''
+        n = len(c)-self.BYTES_TAG
+        c,tag = c[:n],c[n:]
+        self.init(S,nonce,key)
+        self.process_header(S,h)
+        m += self.decrypt_data(S,c)
+        self.process_trailer(S,t)
+        gtag = self.generate_tag(S)
+        if tag != gtag:
+            m = ''
+        return m
