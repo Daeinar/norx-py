@@ -6,6 +6,8 @@
    :copyright: (c) 2014 by Philipp Jovanovic <philipp@jovanovic.io>.
    :license: CC0, see LICENSE for more details.
 """
+from struct import unpack as load
+from struct import pack as store
 from norx import NORX
 
 def vectors_G(w,i):
@@ -230,11 +232,7 @@ def print_state(S,ws):
     print_vector([S[12],S[13],S[14],S[15]],ws)
     print
 
-
-if __name__ == '__main__':
-
-    DEBUG = False
-
+def test_G():
     # check G function
     for ws in [32,64]:
         norx = NORX(w = ws)
@@ -244,9 +242,9 @@ if __name__ == '__main__':
                 print_vector(x)
             assert vectors_G(ws,i) == tuple(x)
             x[0],x[1],x[2],x[3] = norx.G(*x)
-        print "NORX{}, G: all tests passed.".format(ws)
+        print "NORX{}, G: tests passed.".format(ws)
 
-
+def test_F():
     # check F function
     for ws in [32,64]:
         norx = NORX(w = ws)
@@ -256,36 +254,80 @@ if __name__ == '__main__':
                 print_state(x)
             assert vectors_F(ws,i) == tuple(x)
             norx.F(x)
-        print "NORX{}, F: all tests passed.".format(ws)
+        print "NORX{}, F: tests passed.".format(ws)
+
+def test_enc32():
+    pw,pr,pd,pt = 32,4,1,128
+    K = [0x00112233,0x44556677,0x8899AABB,0xCCDDEEFF]
+    N = [0xFFFFFFFF,0xFFFFFFFF]
+    A = [0x10000002,0x30000004]
+    P = [0x80000007,0x60000005,0x40000003,0x20000001]
+    C = [0xCCABE778,0xB475C97F,0x544B3BC2,0x06DA08D4]
+    T = [0xF41C98A9,0xE9BEC3FE,0x80558E88,0x29A994CE]
+    k = b''.join([store('<L',K[i]) for i in xrange(len(K))])
+    n = b''.join([store('<L',N[i]) for i in xrange(len(N))])
+    a = b''.join([store('<L',A[i]) for i in xrange(len(A))])
+    p = b''.join([store('<L',P[i]) for i in xrange(len(P))])
+    c = b''.join([store('<L',C[i]) for i in xrange(len(C))])
+    t = b''.join([store('<L',T[i]) for i in xrange(len(T))])
+
+    norx = NORX(pw,pr,pd,pt)
+    cc = norx.aead_encrypt(a,p,'',n,k)
+    ct = c+t
+
+    for i in xrange(len(cc)):
+        assert cc[i] == ct[i]
+    print "NORX{}, enc: tests passed.".format(pw)
+
+def test_enc64():
+    pw,pr,pd,pt = 64,4,1,256
+    K = [0x0011223344556677,0x8899AABBCCDDEEFF,0xFFEEDDCCBBAA9988,0x7766554433221100]
+    N = [0xFFFFFFFFFFFFFFFF,0xFFFFFFFFFFFFFFFF]
+    A = [0x1000000000000002,0x3000000000000004]
+    P = [0x8000000000000007,0x6000000000000005,0x4000000000000003,0x2000000000000001]
+    C = [0x70261529CACFB7ED,0xADEDDCDEF81912B5,0x8D5DB2E73CB9A44E,0x576DD64D38BE869F]
+    T = [0x97F45179DE5D5804,0xE47E0A8FA7B157D0,0xAD4E6B119FE2FEF2,0x939490F32AADB1B9]
+    k = b''.join([store('<Q',K[i]) for i in xrange(len(K))])
+    n = b''.join([store('<Q',N[i]) for i in xrange(len(N))])
+    a = b''.join([store('<Q',A[i]) for i in xrange(len(A))])
+    p = b''.join([store('<Q',P[i]) for i in xrange(len(P))])
+    c = b''.join([store('<Q',C[i]) for i in xrange(len(C))])
+    t = b''.join([store('<Q',T[i]) for i in xrange(len(T))])
+
+    norx = NORX(pw,pr,pd,pt)
+    cc = norx.aead_encrypt(a,p,'',n,k)
+    ct = c+t
+
+    for i in xrange(len(cc)):
+        assert cc[i] == ct[i]
+    print "NORX{}, enc: tests passed.".format(pw)
+
+
+if __name__ == '__main__':
+
+    DEBUG = False
+
+    test_G()
+    test_F()
+    test_enc32()
+    test_enc64()
 
 
 
-    import struct
-    norx = NORX(w = 32)
-
-    k = '\x33\x22\x11\x00\x77\x66\x55\x44\xBB\xAA\x99\x88\xFF\xEE\xDD\xCC'
-    n = '\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF'
-
-    a = '\x02\x00\x00\x01\x04\x00\x00\x03'
-    A = [ struct.unpack('<L', a[4*i:4*(i+1)])[0] for i in xrange(2) ]
 
 
-    m = ''
-    for i in xrange(norx.BYTES_RATE):
-        x = norx.pad(m)
-        for y in x:
-            print "{:02X}".format(ord(y)),
-        print
-        m += chr(i)
-
-    #X = [ struct.unpack('<L', x[4*i:4*(i+1)])[0] for i in xrange(len(x)/4) ]
-    #for y in X:
-    #    print '{:08X}'.format(y),
-    #print
+    #a = '\x02\x00\x00\x01\x04\x00\x00\x03'
+    #m = ''
+    #for i in xrange(norx.BYTES_RATE):
+    #    x = norx.pad(m)
+    #    for y in x:
+    #        print "{:02X}".format(ord(y)),
+    #    print
+    #    m += chr(i)
 
 
-    #S = norx.init(k,n)
-    #print_state(S,32)
+
+
 
 
 
