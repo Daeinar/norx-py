@@ -255,17 +255,37 @@ if __name__ == '__main__':
             if DEBUG:
                 print_state(x)
             assert vectors_F(ws,i) == tuple(x)
-            x = norx.F(x)
+            norx.F(x)
         print "NORX{}, F: all tests passed.".format(ws)
 
 
 
-    k = b'\x33\x22\x11\x00\x77\x66\x55\x44\xBB\xAA\x99\x88\xFF\xEE\xDD\xCC'
-    n = b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF'
-
+    import struct
     norx = NORX(w = 32)
-    S = norx.init(k,n)
-    print_state(S,32)
+
+    k = '\x33\x22\x11\x00\x77\x66\x55\x44\xBB\xAA\x99\x88\xFF\xEE\xDD\xCC'
+    n = '\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF'
+
+    a = '\x02\x00\x00\x01\x04\x00\x00\x03'
+    A = [ struct.unpack('<L', a[4*i:4*(i+1)])[0] for i in xrange(2) ]
+
+
+    m = ''
+    for i in xrange(norx.BYTES_RATE):
+        x = norx.pad(m)
+        for y in x:
+            print "{:02X}".format(ord(y)),
+        print
+        m += chr(i)
+
+    #X = [ struct.unpack('<L', x[4*i:4*(i+1)])[0] for i in xrange(len(x)/4) ]
+    #for y in X:
+    #    print '{:08X}'.format(y),
+    #print
+
+
+    #S = norx.init(k,n)
+    #print_state(S,32)
 
 
 
