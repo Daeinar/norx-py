@@ -304,8 +304,6 @@ def test_enc64():
     print "NORX{}, enc/dec: tests passed.".format(pw)
 
 
-
-
 if __name__ == '__main__':
 
     DEBUG = False
@@ -314,28 +312,3 @@ if __name__ == '__main__':
     test_F()
     test_enc32()
     test_enc64()
-
-
-
-
-
-    #a = '\x02\x00\x00\x01\x04\x00\x00\x03'
-    #m = ''
-    #for i in xrange(norx.BYTES_RATE):
-    #    x = norx.pad(m)
-    #    for y in x:
-    #        print "{:02X}".format(ord(y)),
-    #    print
-    #    m += chr(i)
-
-
-
-
-
-
-
-
-
-
-
-

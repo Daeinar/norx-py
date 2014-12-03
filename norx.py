@@ -8,18 +8,6 @@
 
 from struct import unpack, pack
 
-def print_vector(x,ws):
-    s = ''.join(["{:0",str(ws/4),"X}, "] * 3 + ["{:0",str(ws/4),"X}"])
-    print s.format(x[0],x[1],x[2],x[3])
-
-def print_state(S,ws):
-    print_vector([S[ 0],S[ 1],S[ 2],S[ 3]],ws)
-    print_vector([S[ 4],S[ 5],S[ 6],S[ 7]],ws)
-    print_vector([S[ 8],S[ 9],S[10],S[11]],ws)
-    print_vector([S[12],S[13],S[14],S[15]],ws)
-    print
-
-
 class NORX:
 
     def __init__(self,w=64,r=4,d=1,t=256):
