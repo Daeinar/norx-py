@@ -18,7 +18,8 @@ class NORX:
         self.NORX_W = w
         self.NORX_R = r
         self.NORX_D = d
-        self.NORX_T =         self.NORX_N = w * 2
+        self.NORX_T = t
+        self.NORX_N = w * 2
         self.NORX_K = w * 4
         self.NORX_B = w * 16
         self.NORX_C = w * 6
