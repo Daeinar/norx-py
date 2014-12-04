@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 """
-   NORX reference Python2 implementation.
+   Test vectors for NORX.
    ------
 
    :author: 2014 by Philipp Jovanovic <philipp@jovanovic.io>.

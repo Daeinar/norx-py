@@ -1,5 +1,5 @@
 """
-   NORX reference Python2 implementation.
+   Python2 implementation of NORX.
    ------
 
    :author: 2014 by Philipp Jovanovic <philipp@jovanovic.io>.
