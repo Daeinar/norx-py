@@ -3,7 +3,7 @@
    NORX reference Python2 implementation.
    ------
 
-   :copyright: (c) 2014 by Philipp Jovanovic <philipp@jovanovic.io>.
+   :author: 2014 by Philipp Jovanovic <philipp@jovanovic.io>.
    :license: CC0, see LICENSE for more details.
 """
 

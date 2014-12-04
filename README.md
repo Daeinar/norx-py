@@ -1,4 +1,4 @@
-### NORX reference Python2 implementation.
+### Python2 implementation of NORX.
 
 ####Specification
 The specification of NORX can be found [here](https://norx.io/data/norx.pdf).
@@ -8,3 +8,6 @@ The NORX source code is released under the [CC0 license](https://creativecommons
 
 ####Warning
 ##### NORX is a new design submitted to [CAESAR](http://competitions.cr.yp.to/caesar.html). The authors are confident that it is secure, but nevertheless NORX still lacks extensive analysis. So don't use it in your applications, yet.
+
+####Usage & Examples
+See [main.py](https://github.com/Daeinar/norx-py/blob/master/main.py).
