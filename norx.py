@@ -85,7 +85,7 @@ class NORX:
     def pad(self,x):
         y = bytearray(self.BYTES_RATE)
         y[:len(x)] = bytearray(x)
-        y[len(x)] = 0x10
+        y[len(x)] = 0x01
         y[self.BYTES_RATE-1] |= 0x80
         return y
 
@@ -194,19 +194,15 @@ class NORX:
         b = self.BYTES_WORD
         self.inject_tag(S,self.PAYLOAD_TAG)
         self.permute(S)
-
         for i in xrange(self.WORDS_RATE):
             y += pack(self.fmt,S[i])
-
         y[:len(x)] = bytearray(x)
-        y[len(x)] ^= 0x10
+        y[len(x)] ^= 0x01
         y[self.BYTES_RATE-1] ^= 0x80
-
         for i in xrange(self.WORDS_RATE):
             c = unpack(self.fmt,y[b*i:b*(i+1)])[0]
             m += pack(self.fmt,S[i] ^ c)
             S[i] = c
-
         return m[:len(x)]
 
     def generate_tag(self,S):
@@ -224,36 +220,31 @@ class NORX:
             acc |= t0[i] ^ t1[i]
         return (((acc - 1) >> 8) & 1) - 1
 
-    def aead_encrypt(self,h,m,t,nonce,key):
-        assert len(key) == self.NORX_K / 8
-        assert len(nonce) == self.NORX_N / 8
-
-        S = [0] * 16
+    def aead_encrypt(self,h,m,t,n,k):
+        assert len(k) == self.NORX_K / 8
+        assert len(n) == self.NORX_N / 8
         c = bytearray()
-        self.init(S,nonce,key)
+        S = [0] * 16
+        self.init(S,n,k)
         self.process_header(S,h)
         c += self.encrypt_data(S,m)
         self.process_trailer(S,t)
         c += self.generate_tag(S)
         return c
 
-    def aead_decrypt(self,h,c,t,nonce,key):
-        assert len(key) == self.NORX_K / 8
-        assert len(nonce) == self.NORX_N / 8
+    def aead_decrypt(self,h,c,t,n,k):
+        assert len(k) == self.NORX_K / 8
+        assert len(n) == self.NORX_N / 8
         assert len(c) >= self.BYTES_TAG
-
-        result = -1
-
-        S = [0] * 16
         m = bytearray()
-        n = len(c)-self.BYTES_TAG
-        c,t0 = c[:n],c[n:]
-        self.init(S,nonce,key)
+        S = [0] * 16
+        d = len(c)-self.BYTES_TAG
+        c,t0 = c[:d],c[d:]
+        self.init(S,n,k)
         self.process_header(S,h)
         m += self.decrypt_data(S,c)
         self.process_trailer(S,t)
         t1 = self.generate_tag(S)
-        result = self.verify_tag(t0,t1)
-        if result != 0:
+        if self.verify_tag(t0,t1) != 0:
             m = None
         return m

@@ -217,8 +217,6 @@ def test_G():
         norx = NORX(w = ws)
         x = [1, 0, 0, 0]
         for i in xrange(16):
-            if DEBUG:
-                print_vector(x)
             assert vectors_G(ws,i) == tuple(x)
             x[0],x[1],x[2],x[3] = norx.G(*x)
         print 'NORX{}, G: tests passed.'.format(ws)
@@ -229,59 +227,9 @@ def test_F():
         norx = NORX(w = ws)
         x = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         for i in xrange(16):
-            if DEBUG:
-                print_state(x)
             assert vectors_F(ws,i) == tuple(x)
             norx.F(x)
         print 'NORX{}, F: tests passed.'.format(ws)
-
-def test_enc32():
-    pw,pr,pd,pt = 32,4,1,128
-    K = [0x00112233,0x44556677,0x8899AABB,0xCCDDEEFF]
-    N = [0xFFFFFFFF,0xFFFFFFFF]
-    A = [0x10000002,0x30000004]
-    M = [0x80000007,0x60000005,0x40000003,0x20000001]
-    C = [0xCCABE778,0xB475C97F,0x544B3BC2,0x06DA08D4]
-    T = [0xF41C98A9,0xE9BEC3FE,0x80558E88,0x29A994CE]
-    k = b''.join([pack('<L',K[i]) for i in xrange(len(K))])
-    n = b''.join([pack('<L',N[i]) for i in xrange(len(N))])
-    a = b''.join([pack('<L',A[i]) for i in xrange(len(A))])
-    m = b''.join([pack('<L',M[i]) for i in xrange(len(M))])
-    c = b''.join([pack('<L',C[i]) for i in xrange(len(C))])
-    t = b''.join([pack('<L',T[i]) for i in xrange(len(T))])
-
-    norx = NORX(pw,pr,pd,pt)
-    cc = norx.aead_encrypt(a,m,'',n,k)
-    mm = norx.aead_decrypt(a,cc,'',n,k)
-
-    assert len(mm) == len(m)
-    for i in xrange(len(m)):
-        assert mm[i] == m[i]
-    print 'NORX{}, enc/dec: tests passed.'.format(pw)
-
-def test_enc64():
-    pw,pr,pd,pt = 64,4,1,256
-    K = [0x0011223344556677,0x8899AABBCCDDEEFF,0xFFEEDDCCBBAA9988,0x7766554433221100]
-    N = [0xFFFFFFFFFFFFFFFF,0xFFFFFFFFFFFFFFFF]
-    A = [0x1000000000000002,0x3000000000000004]
-    M = [0x8000000000000007,0x6000000000000005,0x4000000000000003,0x2000000000000001]
-    C = [0x70261529CACFB7ED,0xADEDDCDEF81912B5,0x8D5DB2E73CB9A44E,0x576DD64D38BE869F]
-    T = [0x97F45179DE5D5804,0xE47E0A8FA7B157D0,0xAD4E6B119FE2FEF2,0x939490F32AADB1B9]
-    k = b''.join([pack('<Q',K[i]) for i in xrange(len(K))])
-    n = b''.join([pack('<Q',N[i]) for i in xrange(len(N))])
-    a = b''.join([pack('<Q',A[i]) for i in xrange(len(A))])
-    m = b''.join([pack('<Q',M[i]) for i in xrange(len(M))])
-    c = b''.join([pack('<Q',C[i]) for i in xrange(len(C))])
-    t = b''.join([pack('<Q',T[i]) for i in xrange(len(T))])
-
-    norx = NORX(pw,pr,pd,pt)
-    cc = norx.aead_encrypt(a,m,'',n,k)
-    mm = norx.aead_decrypt(a,cc,'',n,k)
-
-    assert len(mm) == len(m)
-    for i in xrange(len(m)):
-        assert mm[i] == m[i]
-    print 'NORX{}, enc/dec: tests passed.'.format(pw)
 
 
 def kat():
@@ -300,10 +248,6 @@ def kat():
             assert len(o) == len(m[:i])
             for j in xrange(len(m[:i])):
                 assert o[j] == m[j]
-            print i,
-            for x in c:
-                print '{:02X}'.format(x),
-            print
         print 'NORX{}, enc/dec: tests passed.'.format(pw)
 
 
@@ -314,6 +258,4 @@ if __name__ == '__main__':
 
     test_G()
     test_F()
-    #test_enc32()
-    #test_enc64()
     kat()
