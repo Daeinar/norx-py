@@ -9,5 +9,5 @@ The NORX source code is released under the [CC0 license](https://creativecommons
 See [main.py](https://github.com/Daeinar/norx-py/blob/master/main.py).
 
 ####Warning
-##### The authors are confident that it is secure, but nevertheless NORX still lacks extensive analysis. So don't use it in your applications, yet.
+##### The authors are confident that NORX is secure, but nevertheless the cipher still lacks extensive analysis. So don't use it in your applications, yet.
 
