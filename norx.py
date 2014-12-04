@@ -30,12 +30,10 @@ class NORX:
         self.FINAL_TAG =   1 << 3
         self.BRANCH_TAG =  1 << 4
         self.MERGE_TAG =   1 << 5
-
         self.BYTES_WORD = w / 8
         self.BYTES_TAG = t / 8
         self.WORDS_RATE = self.RATE / w
         self.BYTES_RATE = self.WORDS_RATE * self.BYTES_WORD
-
         if w == 32:
             self.R = (8,11,16,31)
             self.U = (0x243F6A88, 0x85A308D3, 0x13198A2E, 0x03707344, 0x254F537A,
@@ -90,22 +88,18 @@ class NORX:
         return y
 
     def init(self,S,n,k):
-
         b = self.BYTES_WORD
         K = [ unpack(self.fmt, k[b*i:b*(i+1)])[0] for i in xrange(self.NORX_K / self.NORX_W) ]
         N = [ unpack(self.fmt, n[b*i:b*(i+1)])[0] for i in xrange(self.NORX_N / self.NORX_W) ]
         U = self.U
-
         S[ 0], S[ 1], S[ 2], S[ 3] = U[0], N[0], N[1], U[1]
         S[ 4], S[ 5], S[ 6], S[ 7] = K[0], K[1], K[2], K[3]
         S[ 8], S[ 9], S[10], S[11] = U[2], U[3], U[4], U[5]
         S[12], S[13], S[14], S[15] = U[6], U[7], U[8], U[9]
-
         S[12] ^= self.NORX_W
         S[13] ^= self.NORX_R
         S[14] ^= self.NORX_D
         S[15] ^= self.NORX_T
-
         self.permute(S)
 
     def inject_tag(self,S,tag):
