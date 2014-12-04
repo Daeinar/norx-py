@@ -84,7 +84,7 @@ class NORX:
 
     def pad(self,x):
         y = bytearray(self.BYTES_RATE)
-        y[:len(x)] = bytearray(x)
+        y[:len(x)] = x
         y[len(x)] = 0x01
         y[self.BYTES_RATE-1] |= 0x80
         return y
@@ -216,6 +216,7 @@ class NORX:
 
     def verify_tag(self, t0, t1):
         acc = 0
+        t0[0] ^= 0x01
         for i in xrange(self.BYTES_TAG):
             acc |= t0[i] ^ t1[i]
         return (((acc - 1) >> 8) & 1) - 1
@@ -230,13 +231,14 @@ class NORX:
         c += self.encrypt_data(S,m)
         self.process_trailer(S,t)
         c += self.generate_tag(S)
-        return c
+        return str(c)
 
     def aead_decrypt(self,h,c,t,n,k):
         assert len(k) == self.NORX_K / 8
         assert len(n) == self.NORX_N / 8
         assert len(c) >= self.BYTES_TAG
         m = bytearray()
+        c = bytearray(c)
         S = [0] * 16
         d = len(c)-self.BYTES_TAG
         c,t0 = c[:d],c[d:]
@@ -246,5 +248,5 @@ class NORX:
         self.process_trailer(S,t)
         t1 = self.generate_tag(S)
         if self.verify_tag(t0,t1) != 0:
-            m = None
-        return m
+            m = ''
+        return str(m)

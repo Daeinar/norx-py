@@ -6,8 +6,10 @@
    :copyright: (c) 2014 by Philipp Jovanovic <philipp@jovanovic.io>.
    :license: CC0, see LICENSE for more details.
 """
+
 from struct import unpack, pack
 from norx import NORX
+
 
 def vectors_G(w,i):
     x = { 32: [ (0x00000001, 0x00000000, 0x00000000, 0x00000000),
@@ -46,6 +48,7 @@ def vectors_G(w,i):
               ]
     }
     return x[w][i]
+
 
 def vectors_F(w,i):
     x = { 32: [ (0x00000001, 0x00000000, 0x00000000, 0x00000000,
@@ -211,6 +214,7 @@ def vectors_F(w,i):
     }
     return x[w][i]
 
+
 def test_G():
     # check G function
     for ws in [32,64]:
@@ -220,6 +224,7 @@ def test_G():
             assert vectors_G(ws,i) == tuple(x)
             x[0],x[1],x[2],x[3] = norx.G(*x)
         print 'NORX{}, G: tests passed.'.format(ws)
+
 
 def test_F():
     # check F function
@@ -233,13 +238,11 @@ def test_F():
 
 
 def kat():
-
     ml,hl,kl,nl = 256,256,32,16
-    m = bytearray([255 & (i*197 + 123) for i in xrange(ml)])
-    h = bytearray([255 & (i*193 + 123) for i in xrange(hl)])
-    k = bytearray([255 & (i*191 + 123) for i in xrange(kl)])
-    n = bytearray([255 & (i*181 + 123) for i in xrange(nl)])
-
+    m = b''.join([chr(255 & (i*197 + 123)) for i in xrange(ml)])
+    h = b''.join([chr(255 & (i*193 + 123)) for i in xrange(hl)])
+    k = b''.join([chr(255 & (i*191 + 123)) for i in xrange(kl)])
+    n = b''.join([chr(255 & (i*181 + 123)) for i in xrange(nl)])
     for pw in [32,64]:
         norx = NORX(pw,4,1,4*pw)
         for i in xrange(len(m)):
@@ -251,11 +254,7 @@ def kat():
         print 'NORX{}, enc/dec: tests passed.'.format(pw)
 
 
-
 if __name__ == '__main__':
-
-    DEBUG = False
-
     test_G()
     test_F()
     kat()
