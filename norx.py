@@ -210,7 +210,6 @@ class NORX:
 
     def verify_tag(self, t0, t1):
         acc = 0
-        t0[0] ^= 0x01
         for i in xrange(self.BYTES_TAG):
             acc |= t0[i] ^ t1[i]
         return (((acc - 1) >> 8) & 1) - 1
