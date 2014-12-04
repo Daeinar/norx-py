@@ -7,7 +7,7 @@
    :license: CC0, see LICENSE for more details.
 """
 
-from struct import unpack, pack
+from struct import pack, unpack
 from norx import NORX
 
 

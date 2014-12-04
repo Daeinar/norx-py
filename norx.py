@@ -6,7 +6,7 @@
    :license: CC0, see LICENSE for more details.
 """
 
-from struct import unpack, pack
+from struct import pack, unpack
 
 class NORX:
 
@@ -18,8 +18,7 @@ class NORX:
         self.NORX_W = w
         self.NORX_R = r
         self.NORX_D = d
-        self.NORX_T = t
-        self.NORX_N = w * 2
+        self.NORX_T =         self.NORX_N = w * 2
         self.NORX_K = w * 4
         self.NORX_B = w * 16
         self.NORX_C = w * 6
@@ -46,6 +45,12 @@ class NORX:
                       0x670A134EE52D7FA6, 0xC4316D80CD967541, 0xD21DFBF8B630B762, 0x375A18D261E7F892, 0x343D1F187D92285B)
             self.M = 0xffffffffffffffff
             self.fmt = '<Q'
+
+    def load(self, x):
+        return unpack(self.fmt, x)[0]
+
+    def store(self, x):
+        return pack(self.fmt, x)
 
     def ROTR(self,a,r):
         return ((a >> r) | (a << (self.NORX_W - r))) & self.M
@@ -89,8 +94,8 @@ class NORX:
 
     def init(self,S,n,k):
         b = self.BYTES_WORD
-        K = [ unpack(self.fmt, k[b*i:b*(i+1)])[0] for i in xrange(self.NORX_K / self.NORX_W) ]
-        N = [ unpack(self.fmt, n[b*i:b*(i+1)])[0] for i in xrange(self.NORX_N / self.NORX_W) ]
+        K = [ self.load(k[b*i:b*(i+1)]) for i in xrange(self.NORX_K / self.NORX_W) ]
+        N = [ self.load(n[b*i:b*(i+1)]) for i in xrange(self.NORX_N / self.NORX_W) ]
         U = self.U
         S[ 0], S[ 1], S[ 2], S[ 3] = U[0], N[0], N[1], U[1]
         S[ 4], S[ 5], S[ 6], S[ 7] = K[0], K[1], K[2], K[3]
@@ -126,7 +131,7 @@ class NORX:
         self.inject_tag(S,tag)
         self.permute(S)
         for i in xrange(self.WORDS_RATE):
-            S[i] ^= unpack(self.fmt,x[b*i:b*(i+1)])[0]
+            S[i] ^= self.load(x[b*i:b*(i+1)])
 
     def absorb_lastblock(self,S,x,tag):
         y = self.pad(x)
@@ -150,8 +155,8 @@ class NORX:
         self.inject_tag(S,self.PAYLOAD_TAG)
         self.permute(S)
         for i in xrange(self.WORDS_RATE):
-            S[i] ^= unpack(self.fmt,x[b*i:b*(i+1)])[0]
-            c += pack(self.fmt,S[i])
+            S[i] ^= self.load(x[b*i:b*(i+1)])
+            c += self.store(S[i])
         return c[:self.BYTES_RATE]
 
     def encrypt_lastblock(self,S,x):
@@ -177,8 +182,8 @@ class NORX:
         self.inject_tag(S,self.PAYLOAD_TAG)
         self.permute(S)
         for i in xrange(self.WORDS_RATE):
-            c = unpack(self.fmt,x[b*i:b*(i+1)])[0]
-            m += pack(self.fmt,S[i] ^ c)
+            c = self.load(x[b*i:b*(i+1)])
+            m += self.store(S[i] ^ c)
             S[i] = c
         return m[:self.BYTES_RATE]
 
@@ -189,13 +194,13 @@ class NORX:
         self.inject_tag(S,self.PAYLOAD_TAG)
         self.permute(S)
         for i in xrange(self.WORDS_RATE):
-            y += pack(self.fmt,S[i])
+            y += self.store(S[i])
         y[:len(x)] = bytearray(x)
         y[len(x)] ^= 0x01
         y[self.BYTES_RATE-1] ^= 0x80
         for i in xrange(self.WORDS_RATE):
-            c = unpack(self.fmt,y[b*i:b*(i+1)])[0]
-            m += pack(self.fmt,S[i] ^ c)
+            c = self.load(y[b*i:b*(i+1)])
+            m += self.store(S[i] ^ c)
             S[i] = c
         return m[:len(x)]
 
@@ -205,7 +210,7 @@ class NORX:
         self.permute(S)
         self.permute(S)
         for i in xrange(self.WORDS_RATE):
-            t += pack(self.fmt,S[i])
+            t += self.store(S[i])
         return t[:self.BYTES_TAG]
 
     def verify_tag(self, t0, t1):
