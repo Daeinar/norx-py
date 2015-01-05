@@ -2,7 +2,7 @@
    Python2 implementation of NORX.
    ------
 
-   :author: 2014 by Philipp Jovanovic <philipp@jovanovic.io>.
+   :author: Philipp Jovanovic <philipp@jovanovic.io>, 2014-2015.
    :license: CC0, see LICENSE for more details.
 """
 
