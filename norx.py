@@ -9,7 +9,7 @@
 from struct import pack, unpack
 
 
-class NORX:
+class NORX(object):
 
     def __init__(self, w=64, r=4, d=1, t=256):
         assert w in [32, 64]
